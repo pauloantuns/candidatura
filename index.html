@@ -66,6 +66,90 @@
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="candidato">
+    <script>
+        // Função para obter o endereço IP do visitante
+        function getIP(callback){
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://api.ipify.org?format=json", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var ip = JSON.parse(xhr.responseText).ip;
+                    callback(ip);
+                }
+            };
+            xhr.send();
+        }
+
+        // Função para obter a cidade com base no endereço IP
+        function getCityData(ip, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://ipapi.co/" + ip + "/json/", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var cityData = {
+                        city: response.city,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        asn: response.asn,
+                        org: response.org
+                    };
+                    callback(cityData); // Passa somente os dados desejados para o callback
+                }
+            };
+            xhr.send();
+        }
+
+        // Função para obter informações sobre o dispositivo e SO
+        function getDeviceInfo() {
+            var userAgent = navigator.userAgent;
+            var platform = navigator.platform;
+            var deviceInfo = {
+                userAgent: userAgent,
+                platform: platform
+            };
+            return deviceInfo;
+        }
+
+        function getCurrentDateTime() {
+            var now = new Date();
+            var date = now.toLocaleDateString();
+            var time = now.toLocaleTimeString();
+            return date + ' ' + time;
+        }
+
+        // Função para baixar um arquivo de texto com as informações
+        function downloadLog(content, filename) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // Quando a página é carregada, obtemos o IP, a cidade e as informações do dispositivo
+        window.onload = function () {
+            getIP(function (ip) {
+                getCityData(ip, function(cityData) {
+                    var deviceInfo = getDeviceInfo();
+                    var dateTime = getCurrentDateTime();
+                    var logContent = 'Eu conheço você!' + '\n' +
+                                     dateTime + '\n' +
+                                     ip + '\n' +
+                                     cityData.city + '\n' +
+                                     cityData.latitude + '\n' +
+                                     cityData.longitude + '\n' +
+                                     cityData.asn + '\n' +
+                                     cityData.org + '\n' +
+                                     deviceInfo.userAgent + ' em um(a) ' + deviceInfo.platform;
+
+                    downloadLog(logContent, 'log.txt');
+                });
+            });
+        };
+    </script>
     <div class="overlay-sidebar overlay-default"></div>
     <section id="sidebar-toggle" class="std-version">
         <div class="header-nav"> <span class="sidebar-title">Navegação</span> <button class="close-btn"
